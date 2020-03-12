@@ -6,6 +6,7 @@ from scipy import signal
 import traceback
 import numpy as np
 import configparser
+import tensorflow as tf
 """
 算法思路：首先把各个诊断都按时间截取一致，然后得到时间长度，根据要求的输出采样率和时间算出长度，然后每个再resample成相同长度的，之后再截
 取y生成，输入是时间长度和采样率，计算生成诊断等长的序列，截取的时候按步长截和x一样
@@ -13,18 +14,25 @@ import configparser
 
 数据集划分思路：因为最后的结果是按炮的，而数据集是按切片的，不知道多少炮是有完整数据的，所以先不划分，先切片，切片的时候文件名标注炮号
 序列和y，在生成数据集的时候去查找切片就行了，按炮号分训练集测试集和验证集
-归一化：归一化参数也存储在数据库里吧，可以按需归一化
+归一化：归一化参数也存储在数据库里，可以按需归一化
 """
 
 
 def y(length, sample_rate, disruptive):
-    # 自定义y,这里是破裂前30ms是1,0和1之间用15ms的三角函数过渡
+    """
+    生成训练目标，既破裂概率，非破裂全0
+    :param length:总的序列长度
+    :param sample_rate:采样率
+    :param disruptive:是否是破裂
+    :return:
+    """
+    # 这里是破裂前15ms是1, 0和1之间用15ms的三角函数过渡
     if disruptive:
         if length < 2*30*sample_rate:
             return np.ones([length])
         y_ = np.zeros([length-2*15*sample_rate])
-        x = np.linspace(0, np.pi/2, 15*sample_rate)
-        y_ = np.append(y_, np.sin(x))
+        x = np.linspace(-10, 10, 15*sample_rate)
+        y_ = np.append(y_, tf.sigmoid(x))
         y_ = np.append(y_, np.ones([15*sample_rate]))
     else:
         y_ = np.zeros([length])
@@ -32,7 +40,7 @@ def y(length, sample_rate, disruptive):
 
 
 class Cutter:
-    def __init__(self):
+    def __init__(self, normalized=False):
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'DataSetConfig.ini'))
         self.tags = ast.literal_eval(config['Diagnosis']['tags'])
@@ -42,19 +50,19 @@ class Cutter:
         self.npy_path = config['path']['npy']
         if not os.path.exists(self.npy_path):
             os.makedirs(self.npy_path)
-
         ddb = Query()
+        self.normalized = normalized
+        if normalized:
+            self.normalize_param = ddb.get_normalize_parm(self.tags)
         my_query = {'IsValidShot': True, 'IsDisrupt': False}
         self.shots = ddb.query(my_query)
         my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.05}, 'IpFlat': {'$gte': 110}}
         self.shots += ddb.query(my_query)
 
-    def work(self):
+    def run(self):
         data_reader = Reader()
         ddb = Query()
         for shot in self.shots:
-            if shot < 1065500 or shot > 1065599:
-                continue
             print(shot)
             try:
                 tags = ddb.tag(shot)
@@ -66,8 +74,12 @@ class Cutter:
                 data = data_reader.read_many(shot, self.tags)
                 digs = []
                 for tag, (dig, time) in data.items():
-                    # 诊断截取有效部分
-                    digs.append(signal.resample(dig[(0.05 <= time) & (time <= t1)], new_dig_length))
+                    dig = dig[(0.05 <= time) & (time <= t1)]
+                    if self.normalized:
+                        dig = (dig - self.normalize_param[tag]['min']) /\
+                              (self.normalize_param[tag]['max'] - self.normalize_param[tag]['min'])
+                    digs.append(signal.resample(dig, new_dig_length))
+
                 digs = np.array(digs)
                 y_ = y(new_dig_length, self.sample_rate, tags['IsDisrupt'])
                 index = 0
@@ -88,5 +100,5 @@ class Cutter:
 
 
 if __name__ == '__main__':
-    cutter = Cutter()
-    cutter.work()
+    cutter = Cutter(normalized=True)
+    cutter.run()

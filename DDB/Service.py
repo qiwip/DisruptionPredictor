@@ -6,7 +6,7 @@ class Query:
     """
     查询J-TEXT破裂数据库的内容
     For example:
-    >>> db = Query()   # 默认host='211.67.27.7', port=27071
+    >>> db = Query()
     >>> db.tag(1046810)
         {'shot': '1046810', 'CqDuration': 0.0, 'CqTime': 0.0, 'IpCq': 0.0, 'IpFlat': 202.8784696689742, 'IsDisrupt': False, 'IsFlatTopDisrupt': False, 'IsRampDownDisrupt': False, 'IsRampUpDisrupt': False, 'IsRunaway': False, 'IsValidShot': True, 'NoData': False, 'RampDownTime': 0.48910004768371573, 'RunawayDuration': 0.0, 'RunawayIp': 0.0, 'TqDuration': 0.0, 'TqTime': 0.0}
     >>> my_query = {'IsDisrupt': True, 'IpFlat':{'$gt':50}}
@@ -19,7 +19,8 @@ class Query:
         database = config['output']
         self.client = MongoClient(database['host'], int(database['port']))
         self.db = self.client[database['database']]
-        self.col = self.db[database['collection']]
+        self.tags = self.db[database['collection']]
+        self.param = self.db[database['collection']+'归一化参数']
 
     def tag(self, shot):
         """
@@ -43,10 +44,18 @@ class Query:
             TqTime              dtype:float       电流淬灭时间
             TqDuration          dtype:float       电流淬灭持续时间
         """
-        result = self.col.find_one(
+        result = self.tags.find_one(
             {'shot': shot}, {'_id': 0}
         )
 
+        return result
+
+    def get_normalize_parm(self, tags):
+        result = dict()
+        for tag in tags:
+            result[tag] = self.param.find_one(
+                {'tag': tag}, {'_id': 0, 'tag': 0}
+            )
         return result
 
     def query(self, filter=None):
@@ -70,7 +79,7 @@ class Query:
         """
         if filter is None:
             filter = {}
-        result = self.col.find(
+        result = self.tags.find(
             filter, {'_id': 0}
         )
         shots = []
@@ -87,9 +96,10 @@ if __name__ == '__main__':
     db = Query()
     # my_query = {'IsValidShot': True, 'RampDownTime': 0, 'CqTime': 0}
     # my_query = {'RampDownTime': 0, 'CqTime': 0}
-    my_query = {'IsValidShot': True}
-    shots = db.query(my_query)
-    print(shots)
-    print(len(shots))
+    # my_query = {'IsValidShot': True}
+    # shots = db.query(my_query)
+    # print(shots)
+    # print(len(shots))
+    print(db.get_normalize_parm([r'\ip'])[r'\ip']['max'])
     # tag = db.tag(1059767)
     # print(tag)
