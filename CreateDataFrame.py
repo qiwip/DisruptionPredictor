@@ -26,13 +26,13 @@ def y(length, sample_rate, disruptive):
     :param disruptive:是否是破裂
     :return:
     """
-    # 这里是破裂前15ms是1, 0和1之间用15ms的三角函数过渡
+    # 这里是破裂前15ms是1, 0和1之间用15ms的sigmoid
     if disruptive:
         if length < 2*30*sample_rate:
             return np.ones([length])
         y_ = np.zeros([length-2*15*sample_rate])
-        x = np.linspace(-10, 10, 15*sample_rate)
-        y_ = np.append(y_, tf.sigmoid(x))
+        x = np.linspace(-10, 0, 15*sample_rate)
+        y_ = np.append(y_, 2 * tf.sigmoid(x))
         y_ = np.append(y_, np.ones([15*sample_rate]))
     else:
         y_ = np.zeros([length])

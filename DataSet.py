@@ -42,6 +42,7 @@ class DataSet:
             else:
                 examples_und.append(x)
                 labels_und.append(y[-1])
+        print('Length un_disruption: ', len(labels_und), '\nLength disruption: ', len(labels_dis))
         dataset_und = tf.data.Dataset.from_tensor_slices((examples_und, labels_und))
         dataset_dis = tf.data.Dataset.from_tensor_slices((examples_dis, labels_dis))
 
