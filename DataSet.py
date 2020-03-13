@@ -28,17 +28,26 @@ class DataSet:
         labels_und = list()
         labels_dis = list()
         ddb = Query()
+        shots = list()
         my_query = {'IsValidShot': True, 'IsDisrupt': False}
-        shots = ddb.query(my_query)[:int(self.shots/2)]
+        for shot in ddb.query(my_query):
+            if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
+                shots.append(shot)
+                if len(shots) >= self.shots/2:
+                    break
+
         my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.05}, 'IpFlat': {'$gte': 110}}
-        shots += ddb.query(my_query)[:int(self.shots/2)]
+        for shot in ddb.query(my_query):
+            if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
+                shots.append(shot)
+                if len(shots) >= self.shots:
+                    break
+
         for shot in shots:
-            file_names = os.listdir(os.path.join(self.npy_path, '{}'.format(shot)))
-            file_names = [i for i in file_names if 'x' in i]
-            print(file_names)
+            file_names = [i for i in os.listdir(os.path.join(self.npy_path, '{}'.format(shot))) if 'x' in i]
             for file in file_names:
-                x = np.load(os.path.join(self.npy_path, file))
-                y = np.load(os.path.join(self.npy_path, file.replace('x', 'y')))
+                x = np.load(os.path.join(self.npy_path, '{}'.format(shot), file))
+                y = np.load(os.path.join(self.npy_path, '{}'.format(shot), file.replace('x', 'y')))
                 if y[-1] > 0:
                     examples_dis.append(x)
                     labels_dis.append(y[-1])

@@ -63,6 +63,8 @@ class Cutter:
         data_reader = Reader()
         ddb = Query()
         for shot in self.shots:
+            if shot < 1065500 or shot > 1065599:
+                continue
             print(shot)
             try:
                 tags = ddb.tag(shot)
