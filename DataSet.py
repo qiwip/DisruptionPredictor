@@ -27,7 +27,6 @@ class DataSet:
         examples_dis = list()
         labels_und = list()
         labels_dis = list()
-        shot_nums = list()
         ddb = Query()
         my_query = {'IsValidShot': True, 'IsDisrupt': False}
         shots = ddb.query(my_query)[:int(self.shots/2)]

@@ -1,9 +1,11 @@
 import configparser
 import os
+import platform
 
 
 config = configparser.ConfigParser()
-if(platform.system()=='Windows'):
+
+if platform.system() == 'Windows':
     config['Diagnosis'] = {
         'tags': ['\\Bt', '\\MA_POL_CA01T', '\\vs_c3_aa001', '\\vs_ha_aa001'],
         'sample_rate': 100,
