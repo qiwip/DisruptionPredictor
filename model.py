@@ -35,6 +35,6 @@ model.fit(train_dataset, epochs=50)
 model.evaluate(test_dataset)
 path = './model/model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
 if not os.path.exists(path):
-    os.mkdir(path)
+    os.makedirs(path)
 
 model.save(path)

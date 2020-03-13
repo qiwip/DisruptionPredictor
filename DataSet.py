@@ -27,11 +27,14 @@ class DataSet:
         labels_dis = list()
         shot_nums = list()
         file_names = os.listdir(self.npy_path)
+        print(len(file_names))
         file_names = [i for i in file_names if 'x' in i]
+        print(len(file_names))
         for file in file_names:
             shot = file.split('_')[1]
             if shot not in shot_nums:
                 shot_nums.append(shot)
+                print(shot)
                 if len(shot_nums) >= self.shots:
                     break
             x = np.load(os.path.join(self.npy_path, file))
