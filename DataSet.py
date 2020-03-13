@@ -1,7 +1,9 @@
 import os
 import numpy as np
 import configparser
+import random
 import tensorflow as tf
+from DDB.Service import Query
 
 
 class DataSet:
@@ -26,25 +28,24 @@ class DataSet:
         labels_und = list()
         labels_dis = list()
         shot_nums = list()
-        file_names = os.listdir(self.npy_path)
-        print(len(file_names))
-        file_names = [i for i in file_names if 'x' in i]
-        print(len(file_names))
-        for file in file_names:
-            shot = file.split('_')[1]
-            if shot not in shot_nums:
-                shot_nums.append(shot)
-                print(shot)
-                if len(shot_nums) >= self.shots:
-                    break
-            x = np.load(os.path.join(self.npy_path, file))
-            y = np.load(os.path.join(self.npy_path, file.replace('x', 'y')))
-            if y[-1] > 0:
-                examples_dis.append(x)
-                labels_dis.append(y[-1])
-            else:
-                examples_und.append(x)
-                labels_und.append(y[-1])
+        ddb = Query()
+        my_query = {'IsValidShot': True, 'IsDisrupt': False}
+        shots = ddb.query(my_query)[:int(self.shots/2)]
+        my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.05}, 'IpFlat': {'$gte': 110}}
+        shots += ddb.query(my_query)[:int(self.shots/2)]
+        for shot in shots:
+            file_names = os.listdir(os.path.join(self.npy_path, '{}'.format(shot)))
+            file_names = [i for i in file_names if 'x' in i]
+            print(file_names)
+            for file in file_names:
+                x = np.load(os.path.join(self.npy_path, file))
+                y = np.load(os.path.join(self.npy_path, file.replace('x', 'y')))
+                if y[-1] > 0:
+                    examples_dis.append(x)
+                    labels_dis.append(y[-1])
+                else:
+                    examples_und.append(x)
+                    labels_und.append(y[-1])
         print('Length un_disruption: ', len(labels_und), '\nLength disruption: ', len(labels_dis))
         dataset_und = tf.data.Dataset.from_tensor_slices((examples_und, labels_und))
         dataset_dis = tf.data.Dataset.from_tensor_slices((examples_dis, labels_dis))

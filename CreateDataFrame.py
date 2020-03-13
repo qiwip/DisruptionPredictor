@@ -83,17 +83,20 @@ class Cutter:
                 digs = np.array(digs)
                 y_ = y(new_dig_length, self.sample_rate, tags['IsDisrupt'])
                 index = 0
+                path = os.path.join(self.npy_path, '{}'.format(shot))
+                if not os.path.exists(path):
+                    os.makedirs(path)
                 while index + self.frame_size <= new_dig_length:
                     frame = digs[:, index: index + self.frame_size]
                     y_frame = y_[index: index + self.frame_size]
-                    np.save(os.path.join(self.npy_path, 'x_{}_{}.npy'.format(shot, int(index/self.step))), frame)
-                    np.save(os.path.join(self.npy_path, 'y_{}_{}.npy'.format(shot, int(index/self.step))), y_frame)
+                    np.save(os.path.join(path, 'x_{}.npy'.format(int(index/self.step))), frame)
+                    np.save(os.path.join(path, 'y_{}.npy'.format(int(index/self.step))), y_frame)
                     index += self.step
                 if index + self.frame_size - new_dig_length < self.frame_size / 2:
                     frame = digs[:, new_dig_length - self.frame_size: new_dig_length]
                     y_frame = y_[new_dig_length - self.frame_size: new_dig_length]
-                    np.save(os.path.join(self.npy_path, 'x_{}_{}.npy'.format(shot, int(index/self.step))), frame)
-                    np.save(os.path.join(self.npy_path, 'y_{}_{}.npy'.format(shot, int(index/self.step))), y_frame)
+                    np.save(os.path.join(path, 'x_{}.npy'.format(int(index/self.step))), frame)
+                    np.save(os.path.join(path, 'y_{}.npy'.format(int(index/self.step))), y_frame)
             except Exception as e:
                 print(e)
                 traceback.print_exc()

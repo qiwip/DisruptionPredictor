@@ -9,3 +9,8 @@ build
 /.idea
 /temp
 /log
+# config
+DataSetConfig.ini
+
+# model
+/model
