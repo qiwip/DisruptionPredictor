@@ -9,7 +9,7 @@ from DataSet import DataSet
 BATCH_SIZE = 128
 SHUFFLE_BUFFER_SIZE = 1000
 learning_rate = 0.001
-EPOCHS = 10
+EPOCHS = 50
 
 
 ds = DataSet()
@@ -61,7 +61,7 @@ def plot_history(history):
     plt.close()
 
 
-# plot_history(history)
+plot_history(history)
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 print(hist.tail())
