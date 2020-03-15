@@ -34,7 +34,7 @@ model.compile(loss='mse', optimizer=tf.keras.optimizers.RMSprop(learning_rate), 
 print(model.summary())
 
 
-history = model.fit(train_dataset, epochs=EPOCHS, validation_split=0.2, verbose=0)
+history = model.fit(train_dataset, epochs=EPOCHS, validation_freq=test_dataset)
 
 
 def plot_history(history):
