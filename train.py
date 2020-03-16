@@ -44,7 +44,7 @@ def plot_history(history):
     plt.xlabel('Epoch')
     plt.ylabel('Mean Abs Error [MPG]')
     plt.plot(hist['epoch'], hist['mae'], label='Train Error')
-    # plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
+    plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
     plt.ylim([0, 0.5])
     plt.legend()
     plt.savefig('./mae.png')
@@ -53,7 +53,7 @@ def plot_history(history):
     plt.xlabel('Epoch')
     plt.ylabel('Mean Square Error [$MPG^2$]')
     plt.plot(hist['epoch'], hist['mse'], label='Train Error')
-    # plt.plot(hist['epoch'], hist['val_mse'], label='Val Error')
+    plt.plot(hist['epoch'], hist['val_mse'], label='Val Error')
     plt.ylim([0, 1])
     plt.legend()
     plt.savefig('./mse.png')
@@ -66,7 +66,7 @@ print(model.summary())
 
 history = model.fit(train_dataset, epochs=EPOCHS, validation_data=test_dataset)
 
-# model.evaluate(test_dataset)
+model.evaluate(test_dataset)
 
 path = './model/model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
 if not os.path.exists(path):
