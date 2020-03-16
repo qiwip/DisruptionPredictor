@@ -73,7 +73,7 @@ if os.path.exists(os.path.join('model', 'main')):
     path = os.path.join('model', 'model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))))
     os.rename(os.path.join('model', 'main'), path)
 
-os.mkdir(os.path.join('model', 'main'))
+os.makedirs(os.path.join('model', 'main'))
 
 plot_history(history)
 hist = pd.DataFrame(history.history)
