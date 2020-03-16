@@ -64,7 +64,7 @@ model = build_model()
 
 print(model.summary())
 
-history = model.fit(train_dataset, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_data=test_dataset)
+history = model.fit(train_dataset, epochs=EPOCHS, validation_data=test_dataset)
 
 # model.evaluate(test_dataset)
 
