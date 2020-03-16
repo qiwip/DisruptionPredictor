@@ -10,7 +10,7 @@ from DataSet import DataSet
 BATCH_SIZE = 128
 SHUFFLE_BUFFER_SIZE = 1000
 learning_rate = 0.001
-EPOCHS = 10
+EPOCHS = 50
 
 
 ds = DataSet()
@@ -47,7 +47,7 @@ def plot_history(history):
     plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
     plt.ylim([0, 0.5])
     plt.legend()
-    plt.savefig('./mae.png')
+    plt.savefig(os.path.join('model', 'main', 'mae.png'))
     plt.close()
     plt.figure()
     plt.xlabel('Epoch')
@@ -56,7 +56,7 @@ def plot_history(history):
     plt.plot(hist['epoch'], hist['val_mse'], label='Val Error')
     plt.ylim([0, 1])
     plt.legend()
-    plt.savefig('./mse.png')
+    plt.savefig(os.path.join('model', 'main', 'mse.png'))
     plt.close()
 
 
@@ -68,13 +68,16 @@ history = model.fit(train_dataset, epochs=EPOCHS, validation_data=test_dataset)
 
 model.evaluate(test_dataset)
 
-path = './model/model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
-if not os.path.exists(path):
-    os.makedirs(path)
+
+if os.path.exists(os.path.join('model', 'main')):
+    path = os.path.join('model', 'model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))))
+    os.rename(os.path.join('model', 'main'), path)
+
+os.mkdir(os.path.join('model', 'main'))
 
 plot_history(history)
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 print(hist.tail())
 
-model.save(os.path.join(path, 'model.h5'))
+model.save(os.path.join('model', 'main', 'model.h5'))

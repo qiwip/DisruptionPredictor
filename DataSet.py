@@ -42,6 +42,10 @@ class DataSet:
                 shots.append(shot)
                 if len(shots) >= self.shots:
                     break
+        if not os.path.exists('log'):
+            os.mkdir('log')
+        with open(os.path.join('log', 'ShotsInDataset.txt'), 'w') as f:
+            print(shots, file=f)
 
         for shot in shots:
             file_names = [i for i in os.listdir(os.path.join(self.npy_path, '{}'.format(shot))) if 'x' in i]
