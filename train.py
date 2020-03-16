@@ -2,6 +2,7 @@ import os
 import time
 import tensorflow as tf
 import matplotlib.pyplot as plt
+
 import pandas as pd
 from DataSet import DataSet
 
@@ -9,7 +10,7 @@ from DataSet import DataSet
 BATCH_SIZE = 128
 SHUFFLE_BUFFER_SIZE = 1000
 learning_rate = 0.001
-EPOCHS = 50
+EPOCHS = 10
 
 
 ds = DataSet()
@@ -19,22 +20,20 @@ train_dataset = train_dataset.shuffle(SHUFFLE_BUFFER_SIZE).batch(BATCH_SIZE)
 test_dataset = test_dataset.batch(BATCH_SIZE)
 
 
-model = tf.keras.Sequential([
-    tf.keras.layers.Flatten(input_shape=(13, 100)),
-    tf.keras.layers.Dense(2048, activation='relu'),
-    tf.keras.layers.Dense(1024, activation='relu'),
-    tf.keras.layers.Dense(512, activation='relu'),
-    tf.keras.layers.Dense(256, activation='relu'),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(1)
-])
+def build_model():
+    model = tf.keras.Sequential([
+        tf.keras.layers.Flatten(input_shape=(13, 100)),
+        tf.keras.layers.Dense(2048, activation='relu'),
+        tf.keras.layers.Dense(1024, activation='relu'),
+        tf.keras.layers.Dense(512, activation='relu'),
+        tf.keras.layers.Dense(256, activation='relu'),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dense(1)
+    ])
+    optimizer = tf.keras.optimizers.RMSprop(learning_rate=learning_rate)
+    model.compile(loss='mse', optimizer=optimizer, metrics=['mae', 'mse'])
 
-model.compile(loss='mse', optimizer=tf.keras.optimizers.RMSprop(learning_rate), metrics=['mae', 'mse'])
-
-print(model.summary())
-
-
-history = model.fit(train_dataset, epochs=EPOCHS, validation_freq=test_dataset)
+    return model
 
 
 def plot_history(history):
@@ -46,7 +45,7 @@ def plot_history(history):
     plt.ylabel('Mean Abs Error [MPG]')
     plt.plot(hist['epoch'], hist['mae'], label='Train Error')
     # plt.plot(hist['epoch'], hist['val_mae'], label='Val Error')
-    # plt.ylim([0, 5])
+    plt.ylim([0, 0.5])
     plt.legend()
     plt.savefig('./mae.png')
     plt.close()
@@ -55,21 +54,27 @@ def plot_history(history):
     plt.ylabel('Mean Square Error [$MPG^2$]')
     plt.plot(hist['epoch'], hist['mse'], label='Train Error')
     # plt.plot(hist['epoch'], hist['val_mse'], label='Val Error')
-    # plt.ylim([0, 20])
+    plt.ylim([0, 1])
     plt.legend()
     plt.savefig('./mse.png')
     plt.close()
 
+
+model = build_model()
+
+print(model.summary())
+
+history = model.fit(train_dataset, epochs=EPOCHS, batch_size=BATCH_SIZE, validation_data=test_dataset)
+
+# model.evaluate(test_dataset)
+
+path = './model/model_{}'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
+if not os.path.exists(path):
+    os.makedirs(path)
 
 plot_history(history)
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 print(hist.tail())
 
-model.evaluate(test_dataset)
-
-path = './model/model_{}.h5'.format(time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
-# if not os.path.exists(path):
-#     os.makedirs(path)
-
-model.save(path)
+model.save(os.path.join(path, 'model.h5'))
