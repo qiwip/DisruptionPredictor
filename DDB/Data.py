@@ -59,8 +59,8 @@ class Exporter:
         fs = len(data) / (time[-1] - time[0]) if len(time) > 1 else 0
         start_time = time[0] if len(time) > 1 else 0
         dataset = h5f.create_dataset('/{}'.format(tag), data=data)
-        dataset.attrs.run('SampleRate', fs)
-        dataset.attrs.run('StartTime', start_time)
+        dataset.attrs.create('SampleRate', fs)
+        dataset.attrs.create('StartTime', start_time)
 
 
 class Reader:

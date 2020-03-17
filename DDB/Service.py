@@ -19,6 +19,8 @@ class Query:
         database = config['output']
         self.client = MongoClient(database['host'], int(database['port']))
         self.db = self.client[database['database']]
+        if config.has_option('output', 'username'):
+            self.db.authenticate(config.get('output', 'username'), config.get('output', 'password'))
         self.tags = self.db[database['collection']]
         self.param = self.db[database['collection']+'归一化参数']
 
@@ -54,7 +56,7 @@ class Query:
         result = dict()
         for tag in tags:
             result[tag] = self.param.find_one(
-                {'tag': tag}, {'_id': 0, 'tag': 0}
+                {'tag': tag}, {'_id': 0}
             )
         return result
 
@@ -96,10 +98,9 @@ if __name__ == '__main__':
     db = Query()
     # my_query = {'IsValidShot': True, 'RampDownTime': 0, 'CqTime': 0}
     # my_query = {'RampDownTime': 0, 'CqTime': 0}
-    # my_query = {'IsValidShot': True}
-    # shots = db.query(my_query)
-    # print(shots)
-    # print(len(shots))
-    print(db.get_normalize_parm([r'\ip'])[r'\ip']['max'])
+    my_query = {'IsValidShot': True}
+    shots = db.query(my_query)
+    print(shots)
+    print(len(shots))
     # tag = db.tag(1059767)
     # print(tag)
