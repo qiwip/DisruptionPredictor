@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import configparser
-import random
 import tensorflow as tf
 from DDB.Service import Query
 
@@ -36,7 +35,7 @@ class DataSet:
                 if len(shots) >= self.shots/2:
                     break
 
-        my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.05}, 'IpFlat': {'$gte': 110}}
+        my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.15}, 'IpFlat': {'$gte': 110}}
         for shot in ddb.query(my_query):
             if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
                 shots.append(shot)
