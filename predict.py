@@ -31,13 +31,12 @@ for shot in shots:
         print(shot)
         x, y = cutter.get_one(shot)
         y_ = model.predict(x)
-        print(y.shape)
-        print(y_.shape)
+        y_ = np.array(y_).flatten()
+
         result = np.array([y, y_])
         np.save(os.path.join(path, 'y_y_{}.npy'.format(shot)), result)
     except Exception as e:
         print(shot, e)
-        traceback.print_exc()
 
 # plt.figure()
 # plt.plot(y, label='y')
