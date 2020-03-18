@@ -9,9 +9,9 @@ shot = int(sys.argv[1])
 cutter = Cutter(normalized=True)
 x, y = cutter.get_one(shot)
 
-dataset = tf.data.Dataset.from_tensor_slices((x, y))
+# dataset = tf.data.Dataset.from_tensor_slices((x, y))
 model = tf.keras.models.load_model(os.path.join('model', 'main', 'model.h5'))
-model.evaluate(dataset)
+# model.evaluate(dataset)
 
 print(model.summary())
 y_ = model.predict(x)
