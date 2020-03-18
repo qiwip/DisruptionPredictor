@@ -3,10 +3,11 @@ import sys
 import tensorflow as tf
 import numpy as np
 from CreateDataFrame import Cutter
+import traceback
 import matplotlib.pyplot as plt
 
 shots = list()
-if len(sys.argv) > 2:
+if len(sys.argv) > 1:
     shots = [int(sys.argv[1])]
 else:
     with open(os.path.join('log', 'IsDisruptShots.txt'), 'r') as f:
@@ -27,12 +28,14 @@ if not os.path.exists(path):
 
 for shot in shots:
     try:
+        print(shot)
         x, y = cutter.get_one(shot)
         y_ = model.predict(x)
         result = np.array([y, y_])
         np.save(os.path.join(path, 'y_y_{}.npy'.format(shot)), result)
     except Exception as e:
         print(shot, e)
+        traceback.print_exc()
 
 # plt.figure()
 # plt.plot(y, label='y')
