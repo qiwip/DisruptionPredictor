@@ -9,10 +9,10 @@ shots = list()
 if len(sys.argv) > 2:
     shots = [int(sys.argv[1])]
 else:
-    with open(os.path.join('log', 'IsDisruptShots.txt'), 'w') as f:
+    with open(os.path.join('log', 'IsDisruptShots.txt'), 'r') as f:
         for i in f.readlines():
             shots.append(int(i.split(' ')[0]))
-    with open(os.path.join('log', 'UnDisruptShots.txt'), 'w') as f:
+    with open(os.path.join('log', 'UnDisruptShots.txt'), 'r') as f:
         for i in f.readlines():
             shots.append(int(i.split(' ')[0]))
 
