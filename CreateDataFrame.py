@@ -143,10 +143,10 @@ class Cutter:
 
 if __name__ == '__main__':
     cutter = Cutter(normalized=True)
-    x, y = cutter.get_one(shot=1065500)
+    x, y = cutter.get_one(1065500)
     print(x.shape, y.shape)
 
-    # import matplotlib.pyplot as plt
-    # plt.figure()
-    # plt.plot(y)
-    # plt.show()
+    import matplotlib.pyplot as plt
+    plt.figure()
+    plt.plot(y)
+    plt.show()
