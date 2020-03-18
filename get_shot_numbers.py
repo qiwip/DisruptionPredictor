@@ -1,7 +1,6 @@
 import os
-import numpy as np
+import ast
 import configparser
-import tensorflow as tf
 from DDB.Service import Query
 
 
@@ -22,10 +21,10 @@ class DataSetShots:
         加载npy数据到tf.data.DataSet
         :return: training set, test set
         """
-        train_test_shots = list()
+
         with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
-            for shot in f.readlines():
-                train_test_shots.append(int(shot))
+            line = f.readline()
+            train_test_shots = ast.literal_eval(line)
         train_test_shots.sort(reverse=False)
         ddb = Query()
         shots = list()
