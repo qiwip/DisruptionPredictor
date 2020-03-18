@@ -48,6 +48,7 @@ class DataSetShots:
                 else:
                     print('{} 0'.format(shot), file=f)
 
+        shots.clear()
         my_query = {'IsValidShot': True, 'IsDisrupt': False, 'IpFlat': {'$gte': 110}}
         for shot in ddb.query(my_query):
             if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
