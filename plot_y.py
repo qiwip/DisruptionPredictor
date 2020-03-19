@@ -10,9 +10,14 @@ if not os.path.exists(path_pic):
     os.makedirs(path_pic)
 for file in os.listdir(path_npy):
     data = np.load(os.path.join(path_npy, file))
-
+    y = data[0]
+    y_ = data[1]
+    y_ = np.where(y_ >= 0, y_, 0)
     plt.figure()
-    plt.plot(data[0], label='y')
-    plt.plot(data[1], label='y_predict')
+    plt.plot(y, label='y')
+    plt.plot(y_, label='y_predict')
     plt.legend()
     plt.savefig(os.path.join(path_pic, file.replace('npy', 'png')))
+    # plt.show()
+    plt.close()
+

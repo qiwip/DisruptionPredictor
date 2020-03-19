@@ -44,9 +44,9 @@ class DataSetShots:
         with open(os.path.join('log', 'IsDisruptShots.txt'), 'w') as f:
             for shot in shots:
                 if shot in train_test_shots:
-                    print('{} 1'.format(shot), file=f)
+                    print('{} 1 d'.format(shot), file=f)
                 else:
-                    print('{} 0'.format(shot), file=f)
+                    print('{} 0 d'.format(shot), file=f)
 
         shots.clear()
         my_query = {'IsValidShot': True, 'IsDisrupt': False, 'IpFlat': {'$gte': 110}}
@@ -59,9 +59,9 @@ class DataSetShots:
         with open(os.path.join('log', 'UnDisruptShots.txt'), 'w') as f:
             for shot in shots:
                 if shot < train_test_shots[0] or shot > train_test_shots[-1]:
-                    print('{} 0'.format(shot), file=f)
+                    print('{} 0 u'.format(shot), file=f)
                 else:
-                    print('{} 1'.format(shot), file=f)
+                    print('{} 1 u'.format(shot), file=f)
 
 
 if __name__ == '__main__':
