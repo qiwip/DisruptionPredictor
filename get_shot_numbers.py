@@ -23,7 +23,7 @@ class DataSetShots:
         train_test_shots = list()
         with open(os.path.join('log', 'ShotsUsed4Training.txt'), 'r') as f:
             for shot in f.readlines():
-                train_test_shots = int(shot)
+                train_test_shots.append(int(shot))
         train_test_shots.sort(reverse=False)
         ddb = Query()
         shots = list()
