@@ -9,14 +9,12 @@ shots = list()
 if len(sys.argv) > 1:
     shots = [int(sys.argv[1])]
 else:
-    with open(os.path.join('log', 'IsDisruptShots.txt'), 'r') as f:
+    with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
         for i in f.readlines():
             shots.append(int(i.split(' ')[0]))
-    with open(os.path.join('log', 'UnDisruptShots.txt'), 'r') as f:
-        for i in f.readlines():
-            shots.append(int(i.split(' ')[0]))
+
 print(len(shots))
-# exit(0)
+
 model = tf.keras.models.load_model(os.path.join('model', 'main', 'model.h5'))
 print(model.summary())
 
