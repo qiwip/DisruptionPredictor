@@ -43,8 +43,9 @@ class DataSet:
                     break
         if not os.path.exists('log'):
             os.mkdir('log')
-        with open(os.path.join('log', 'ShotsInDataset.txt'), 'w') as f:
-            print(shots, file=f)
+        with open(os.path.join('log', 'ShotsUsed4Training.txt'), 'w') as f:
+            for shot in shots:
+                print(shot, file=f)
 
         for shot in shots:
             file_names = [i for i in os.listdir(os.path.join(self.npy_path, '{}'.format(shot))) if 'x' in i]

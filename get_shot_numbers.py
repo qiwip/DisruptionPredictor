@@ -1,5 +1,4 @@
 import os
-import ast
 import configparser
 from DDB.Service import Query
 
@@ -21,42 +20,34 @@ class DataSetShots:
         加载npy数据到tf.data.DataSet
         :return: training set, test set
         """
-
-        with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
-            line = f.readline()
-            train_test_shots = ast.literal_eval(line)
+        train_test_shots = list()
+        with open(os.path.join('log', 'ShotsUsed4Training.txt'), 'r') as f:
+            for shot in f.readlines():
+                train_test_shots = int(shot)
         train_test_shots.sort(reverse=False)
         ddb = Query()
         shots = list()
-        # my_query = {'IsValidShot': True, 'IsDisrupt': False}
-        # for shot in ddb.query(my_query):
-        #     if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
-        #         shots.append(shot)
-        #         if len(shots) >= self.shots/2:
-        #             break
 
-        my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.15}, 'IpFlat': {'$gte': 110}}
-        for shot in ddb.query(my_query):
-            if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
-                shots.append(shot)
-        shots.sort(reverse=False)
+        with open(os.path.join('log', 'ShotsInDataset.txt'), 'w') as f:
+            my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.15}, 'IpFlat': {'$gte': 110}}
+            for shot in ddb.query(my_query):
+                if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
+                    shots.append(shot)
+            shots.sort(reverse=False)
 
-        with open(os.path.join('log', 'IsDisruptShots.txt'), 'w') as f:
             for shot in shots:
                 if shot in train_test_shots:
                     print('{} 1 d'.format(shot), file=f)
                 else:
                     print('{} 0 d'.format(shot), file=f)
 
-        shots.clear()
-        my_query = {'IsValidShot': True, 'IsDisrupt': False, 'IpFlat': {'$gte': 110}}
-        for shot in ddb.query(my_query):
-            if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
-                shots.append(shot)
+            shots.clear()
+            my_query = {'IsValidShot': True, 'IsDisrupt': False, 'IpFlat': {'$gte': 110}}
+            for shot in ddb.query(my_query):
+                if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
+                    shots.append(shot)
 
-        shots.sort(reverse=False)
-
-        with open(os.path.join('log', 'UnDisruptShots.txt'), 'w') as f:
+            shots.sort(reverse=False)
             for shot in shots:
                 if shot < train_test_shots[0] or shot > train_test_shots[-1]:
                     print('{} 0 u'.format(shot), file=f)
