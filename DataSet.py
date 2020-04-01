@@ -1,5 +1,7 @@
 import os
+import time
 import numpy as np
+from numpy import random
 import configparser
 import tensorflow as tf
 from DDB.Service import Query
@@ -10,13 +12,14 @@ class DataSet:
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'DataSetConfig.ini'))
         self.frame_size = int(config['Diagnosis']['frame_size'])
-        self.shots = int(config['DataSet']['shots'])
-        self.train = float(config['DataSet']['train'])
-        self.test = float(config['DataSet']['test'])
+        self.shots_len = int(config['DataSet']['shots'])
+        self.train_per = float(config['DataSet']['train'])
+        self.test_per = float(config['DataSet']['test'])
         self.npy_path = config['path']['npy']
         if not os.path.exists(self.npy_path):
             raise NotADirectoryError('Path {} don\'t exist.'.format(self.npy_path))
 
+    # noinspection DuplicatedCode
     def load(self):
         """
         加载npy数据到tf.data.DataSet
@@ -28,6 +31,8 @@ class DataSet:
         labels_dis = list()
         ddb = Query()
         shots = list()
+
+        # 不使用非破裂炮进行训练
         # my_query = {'IsValidShot': True, 'IsDisrupt': False}
         # for shot in ddb.query(my_query):
         #     if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
@@ -39,8 +44,9 @@ class DataSet:
         for shot in ddb.query(my_query):
             if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
                 shots.append(shot)
-                if len(shots) >= self.shots:
-                    break
+                # if len(shots) >= self.shots:
+                #     break
+        shots = np.random.choice(shots, self.shots_len)
         if not os.path.exists('log'):
             os.mkdir('log')
         with open(os.path.join('log', 'ShotsUsed4Training.txt'), 'w') as f:
@@ -82,6 +88,60 @@ class DataSet:
         # --------------------------------------------------------------------------------------
         # 均衡策略2:disruption扩大2倍, 随机抽取un_disruption, 比例为und/dis = 6/4
         # --------------------------------------------------------------------------------------
+        dataset_und = tf.data.Dataset.from_tensor_slices((examples_und, labels_und))
+        dataset_dis = tf.data.Dataset.from_tensor_slices((examples_dis, labels_dis))
+        dataset_und = dataset_und.shuffle(buffer_size=len_und).take(3*len_dis)
+        dataset_dis = dataset_dis.repeat(2)
+        dataset = dataset_und.concatenate(dataset_dis)
+        dataset = dataset.shuffle(5*len_dis)
+        train_dataset = dataset.take(int(5 * len_dis * self.train_per))
+        test_dataset = dataset.skip(int(5 * len_dis * self.train_per)).take(int(5 * len_dis * self.test_per))
+
+        return train_dataset, test_dataset
+
+
+class DataSetAutoRun:
+    def __init__(self):
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.dirname(__file__), 'DataSetConfig.ini'))
+        self.frame_size = int(config['Diagnosis']['frame_size'])
+        self.train = float(config['DataSet']['train'])
+        self.test = float(config['DataSet']['test'])
+        self.npy_path = config['path']['npy']
+        if not os.path.exists(self.npy_path):
+            raise NotADirectoryError('Path {} don\'t exist.'.format(self.npy_path))
+
+    def load(self, shots):
+        """
+        加载npy数据到tf.data.DataSet
+        :return: training set, test set
+        """
+        examples_und = list()
+        examples_dis = list()
+        labels_und = list()
+        labels_dis = list()
+        if not os.path.exists('log'):
+            os.mkdir('log')
+        with open(os.path.join('log', 'ShotsUsed4Training_{}.txt'.format(
+                time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))), 'w') as f:
+            for shot in shots:
+                print(shot, file=f)
+
+        for shot in shots:
+            file_names = [i for i in os.listdir(os.path.join(self.npy_path, '{}'.format(shot))) if 'x' in i]
+            for file in file_names:
+                x = np.load(os.path.join(self.npy_path, '{}'.format(shot), file))
+                y = np.load(os.path.join(self.npy_path, '{}'.format(shot), file.replace('x', 'y')))
+                if y[-1] > 0:
+                    examples_dis.append(x)
+                    labels_dis.append(y[-1])
+                else:
+                    examples_und.append(x)
+                    labels_und.append(y[-1])
+        len_und = len(labels_und)
+        len_dis = len(labels_dis)
+        print('Length un_disruption: ', len_und, '\nLength disruption: ', len_dis)
+
         dataset_und = tf.data.Dataset.from_tensor_slices((examples_und, labels_und))
         dataset_dis = tf.data.Dataset.from_tensor_slices((examples_dis, labels_dis))
         dataset_und = dataset_und.shuffle(buffer_size=len_und).take(3*len_dis)
