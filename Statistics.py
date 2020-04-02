@@ -10,16 +10,11 @@ font = FontProperties(fname=r"C:\Windows\Fonts\simhei.ttf", size=12)
 threshold = 0.5
 
 path_npy = os.path.join('model', 'result')
-path_pic = os.path.join('model', 'pic')
 
 shots = dict()
 with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
     for i in f.readlines():
         shots[(i.split(' ')[0])] = (i.split(' ')[1], i.split(' ')[2].replace('\n', ''))
-
-if not os.path.exists(path_pic):
-    os.makedirs(os.path.join(path_pic, 'd'))
-    os.makedirs(os.path.join(path_pic, 'u'))
 
 und_total = 0
 und_true = 0
@@ -29,8 +24,8 @@ pre_time = list()
 for file in os.listdir(path_npy):
     shot = file.replace('.npy', '').replace('y_y_', '')
     # if int(shot) < 1065136 or int(shot) > 1065492:
-    if int(shot) < 1064579 or int(shot) > 1065136:
-        continue
+    # if int(shot) < 1064579 or int(shot) > 1065136:
+    #     continue
     data = np.load(os.path.join(path_npy, file))
     y = data[0]
     y_ = data[1]
@@ -46,8 +41,8 @@ for file in os.listdir(path_npy):
             pre_time.append(y_.shape[0] - np.where(y_ > threshold)[0][0])
 
 
-print(und_true, und_total, und_true/und_total*100)
-print(dis_true, dis_total, dis_true/dis_total*100)
+print(und_true, und_total)
+print(dis_true, dis_total)
 print(np.average(pre_time))
 
 # plot

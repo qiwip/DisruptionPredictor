@@ -51,8 +51,8 @@ class DataSetShots:
             for shot in shots:
                 if shot < train_test_shots[0] or shot > train_test_shots[-1]:
                     print('{} 0 u'.format(shot), file=f)
-                else:
-                    print('{} 1 u'.format(shot), file=f)
+                # else:
+                #     print('{} 1 u'.format(shot), file=f)
 
 
 if __name__ == '__main__':
