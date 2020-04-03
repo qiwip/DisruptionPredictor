@@ -3,11 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-path_npy = os.path.join('model', 'result')
-path_pic = os.path.join('model', 'pic')
+path_npy = os.path.join('..', 'model', 'result')
+path_pic = os.path.join('..', 'model', 'pic')
 
 shots = dict()
-with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
+with open(os.path.join('..', 'log', 'ShotsInDataset.txt'), 'r') as f:
     for i in f.readlines():
         shots[(i.split(' ')[0])] = (i.split(' ')[1], i.split(' ')[2].replace('\n', ''))
 print(shots)

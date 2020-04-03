@@ -44,11 +44,15 @@ class DataSet:
         for shot in ddb.query(my_query):
             if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
                 shots.append(shot)
-                # if len(shots) >= self.shots:
-                #     break
-        shots = np.random.choice(shots, self.shots_len)
+                if len(shots) >= self.shots:
+                    break
+        # shots = np.random.choice(shots, self.shots_len)
         if not os.path.exists('log'):
             os.mkdir('log')
+        if os.path.exists(os.path.join('log', 'ShotsUsed4Training.txt')):
+            path = os.path.join('log', 'ShotsUsed4Training_{}.txt'.format(time.strftime('%Y%m%d_%H%M%S',
+                                                                                        time.localtime(time.time()))))
+            os.rename(os.path.join('log', 'ShotsUsed4Training.txt'), path)
         with open(os.path.join('log', 'ShotsUsed4Training.txt'), 'w') as f:
             for shot in shots:
                 print(shot, file=f)
