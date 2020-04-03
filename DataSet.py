@@ -44,7 +44,7 @@ class DataSet:
         for shot in ddb.query(my_query):
             if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
                 shots.append(shot)
-                if len(shots) >= self.shots:
+                if len(shots) >= self.shots_len:
                     break
         # shots = np.random.choice(shots, self.shots_len)
         if not os.path.exists('log'):
