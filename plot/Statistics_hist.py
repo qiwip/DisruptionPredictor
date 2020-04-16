@@ -7,7 +7,7 @@ from matplotlib.font_manager import FontProperties
 font = FontProperties(fname=r"C:\Windows\Fonts\simhei.ttf", size=12)
 
 
-threshold = 0.9
+threshold = 0.6
 
 path_npy = os.path.join('..', 'model', 'result')
 
@@ -25,8 +25,8 @@ pre_time = list()
 for file in os.listdir(path_npy):
     shot = file.replace('.npy', '').replace('y_y_', '')
     # if int(shot) < 1065136 or int(shot) > 1065492:
-    # if int(shot) < 1064579 or int(shot) > 1065136:
-    #     continue
+    if int(shot) < 1064579 or int(shot) > 1065136:
+        continue
     data = np.load(os.path.join(path_npy, file))
     y = data[0]
     y_ = data[1]
@@ -53,14 +53,14 @@ for i in pre_time:
         pre_time3.append(i)
 
 print(und_true, und_total)
-print(und_true/und_total)
+print(und_true/und_total*100, '%')
 print(dis_true, dis_total)
-print(dis_true/dis_total)
+print(dis_true/dis_total*100, '%')
 print('过迟:', len(pre_time1)/len(pre_time))
 print('准确:', len(pre_time2)/len(pre_time))
 print('过早:', len(pre_time3)/len(pre_time))
 print(np.average(pre_time2))
-# exit(0)
+exit(0)
 # plot
 plt.figure(figsize=(19.20, 10.80))
 group = [i for i in range(0, 60, 5)]

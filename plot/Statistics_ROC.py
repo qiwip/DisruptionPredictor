@@ -29,7 +29,8 @@ else:
         pre_time = list()
         for file in os.listdir(path_npy):
             shot = file.replace('.npy', '').replace('y_y_', '')
-
+            if int(shot) < 1065136 or int(shot) > 1065492:
+                continue
             data = np.load(os.path.join(path_npy, file))
             y = data[0]
             y_ = data[1]
