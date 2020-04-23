@@ -3,6 +3,7 @@ import sys
 import tensorflow as tf
 import numpy as np
 from CreateDataFrame import Cutter
+from DataSet import DataSet
 
 
 shots = list()
@@ -18,7 +19,7 @@ print(len(shots))
 model = tf.keras.models.load_model(os.path.join('model', 'main', 'model.h5'))
 print(model.summary())
 
-cutter = Cutter(normalized=True)
+ds = DataSet()
 
 path = os.path.join('model', 'main', 'result')
 if not os.path.exists(path):
@@ -27,7 +28,7 @@ if not os.path.exists(path):
 for shot in shots:
     try:
         print(shot)
-        x, y = cutter.get_one(shot)
+        x, y = ds.get_one(shot)
         y_ = model.predict(x)
         y_ = np.array(y_).flatten()
 

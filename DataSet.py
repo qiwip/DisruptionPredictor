@@ -11,13 +11,13 @@ class DataSet:
     def __init__(self):
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), 'DataSetConfig.ini'))
-        self.frame_size = int(config['Diagnosis']['frame_size'])
-        self.shots_len = int(config['DataSet']['shots'])
-        self.train_per = float(config['DataSet']['train'])
-        self.test_per = float(config['DataSet']['test'])
-        self.npy_path = config['path']['npy']
-        if not os.path.exists(self.npy_path):
-            raise NotADirectoryError('Path {} don\'t exist.'.format(self.npy_path))
+        self._frame_size = int(config['Diagnosis']['frame_size'])
+        self._shots_len = int(config['DataSet']['shots'])
+        self._train_per = float(config['DataSet']['train'])
+        self._test_per = float(config['DataSet']['test'])
+        self._npy_path = config['path']['npy']
+        if not os.path.exists(self._npy_path):
+            raise NotADirectoryError('Path {} don\'t exist.'.format(self._npy_path))
 
     # noinspection DuplicatedCode
     def load(self):
@@ -42,9 +42,9 @@ class DataSet:
 
         my_query = {'IsValidShot': True, 'IsDisrupt': True, 'CqTime': {"$gte": 0.15}, 'IpFlat': {'$gte': 110}}
         for shot in ddb.query(my_query):
-            if os.path.exists(os.path.join(self.npy_path, '{}'.format(shot))):
+            if os.path.exists(os.path.join(self._npy_path, '{}'.format(shot))):
                 shots.append(shot)
-                if len(shots) >= self.shots_len:
+                if len(shots) >= self._shots_len:
                     break
         # shots = np.random.choice(shots, self.shots_len)
         if not os.path.exists('log'):
@@ -58,10 +58,10 @@ class DataSet:
                 print(shot, file=f)
 
         for shot in shots:
-            file_names = [i for i in os.listdir(os.path.join(self.npy_path, '{}'.format(shot))) if 'x' in i]
+            file_names = [i for i in os.listdir(os.path.join(self._npy_path, '{}'.format(shot))) if 'x' in i]
             for file in file_names:
-                x = np.load(os.path.join(self.npy_path, '{}'.format(shot), file))
-                y = np.load(os.path.join(self.npy_path, '{}'.format(shot), file.replace('x', 'y')))
+                x = np.load(os.path.join(self._npy_path, '{}'.format(shot), file))
+                y = np.load(os.path.join(self._npy_path, '{}'.format(shot), file.replace('x', 'y')))
                 if y[-1] > 0:
                     examples_dis.append(x)
                     labels_dis.append(y[-1])
@@ -98,10 +98,19 @@ class DataSet:
         dataset_dis = dataset_dis.repeat(2)
         dataset = dataset_und.concatenate(dataset_dis)
         dataset = dataset.shuffle(5*len_dis)
-        train_dataset = dataset.take(int(5 * len_dis * self.train_per))
-        test_dataset = dataset.skip(int(5 * len_dis * self.train_per)).take(int(5 * len_dis * self.test_per))
+        train_dataset = dataset.take(int(5 * len_dis * self._train_per))
+        test_dataset = dataset.skip(int(5 * len_dis * self._train_per)).take(int(5 * len_dis * self._test_per))
 
         return train_dataset, test_dataset
+
+    def get_one(self, shot):
+        path = os.path.join(self._npy_path, 'full')
+        if os.path.exists(os.path.join(path, 'x_{}.npy'.format(shot))):
+            x = np.load(os.path.join(path, 'x_{}.npy'.format(shot)))
+            y = np.load(os.path.join(path, 'y_{}.npy'.format(shot)))
+            return x, y
+        else:
+            return None, None
 
 
 class DataSetAutoRun:

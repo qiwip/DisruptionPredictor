@@ -30,10 +30,10 @@ def y(length, sample_rate, disruptive):
     if disruptive:
         if length < 2*30*sample_rate:
             return np.ones([length])
-        y_ = np.zeros([length-2*15*sample_rate])
-        x = np.linspace(-10, 0, 15*sample_rate)
+        y_ = np.zeros([length-2*30*sample_rate])
+        x = np.linspace(-10, 0, 30*sample_rate)
         y_ = np.append(y_, 2 * tf.sigmoid(x))
-        y_ = np.append(y_, np.ones([15*sample_rate]))
+        y_ = np.append(y_, np.ones([30*sample_rate]))
     else:
         y_ = np.zeros([length])
     return y_
@@ -103,50 +103,64 @@ class Cutter:
                 print(e)
                 traceback.print_exc()
 
-    def get_one(self, shot):
+    def save_full_npy(self, shots):
         data_reader = Reader()
         ddb = Query()
-        try:
-            tags = ddb.tag(shot)
-            if tags['IsDisrupt']:
-                t1 = tags['CqTime']
-            else:
-                t1 = tags['RampDownTime']
-            new_dig_length = int((t1 * 1000 - 50) * self._sample_rate)
-            data = data_reader.read_many(shot, self._tags)
-            digs = []
-            for tag, (dig, time) in data.items():
-                dig = dig[(0.05 <= time) & (time <= t1)]
-                if self._normalized:
-                    dig = (dig - self._normalize_param[tag]['min']) / \
-                          (self._normalize_param[tag]['max'] - self._normalize_param[tag]['min'])
-                digs.append(signal.resample(dig, new_dig_length))
+        path = os.path.join(self._npy_path, 'full')
+        if not os.path.exists(path):
+            os.makedirs(path)
+        print('####Start generate val DataSet####')
+        for shot in shots:
+            try:
+                print(shot)
 
-            digs = np.array(digs)
-            y_ = y(new_dig_length, self._sample_rate, tags['IsDisrupt'])
-            index = 0
-            x = list()
-            labels = list()
-            while index + self._frame_size <= new_dig_length:
-                frame = digs[:, index: index + self._frame_size]
-                y_frame = y_[index: index + self._frame_size]
-                # index += self.frame_size
-                x.append(frame)
-                labels.append(y_frame[-1])
-                index += self._step
-            return np.array(x), np.array(labels)
-        except Exception as e:
-            print(e)
-            traceback.print_exc()
-            return None, None
+                tags = ddb.tag(shot)
+                if tags['IsDisrupt']:
+                    t1 = tags['CqTime']
+                else:
+                    t1 = tags['RampDownTime']
+                new_dig_length = int((t1 * 1000 - 50) * self._sample_rate)
+                data = data_reader.read_many(shot, self._tags)
+                digs = []
+                for tag, (dig, time) in data.items():
+                    dig = dig[(0.05 <= time) & (time <= t1)]
+                    if self._normalized:
+                        dig = (dig - self._normalize_param[tag]['min']) / \
+                              (self._normalize_param[tag]['max'] - self._normalize_param[tag]['min'])
+                    digs.append(signal.resample(dig, new_dig_length))
+
+                digs = np.array(digs)
+                y_ = y(new_dig_length, self._sample_rate, tags['IsDisrupt'])
+                index = 0
+                x = list()
+                labels = list()
+                while index + self._frame_size <= new_dig_length:
+                    frame = digs[:, index: index + self._frame_size]
+                    y_frame = y_[index: index + self._frame_size]
+                    # index += self.frame_size
+                    x.append(frame)
+                    labels.append(y_frame[-1])
+                    index += self._step
+                x = np.array(x)
+                labels = np.array(labels)
+                np.save(os.path.join(path, 'x_{}.npy'.format(shot)), x)
+                np.save(os.path.join(path, 'y_{}.npy'.format(shot)), labels)
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
 
 
 if __name__ == '__main__':
     cutter = Cutter(normalized=True)
-    x, y = cutter.get_one(1065500)
-    print(x.shape, y.shape)
 
-    import matplotlib.pyplot as plt
-    plt.figure()
-    plt.plot(y)
-    plt.show()
+    # cutter.run()
+
+    # --------------------------------------
+
+    shots = list()
+    with open(os.path.join('log', 'ShotsInDataset.txt'), 'r') as f:
+        for i in f.readlines():
+            shots.append(int(i.split(' ')[0]))
+    shots.sort(reverse=False)
+    print(len(shots))
+    cutter.save_full_npy(shots)
